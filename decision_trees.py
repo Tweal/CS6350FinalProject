@@ -27,12 +27,9 @@ def OHE(x_train, y_train, x_test, y_test, final):
     final = final.copy()
 
     # Concat them all to get unique values for all of them
-    cats = []
     all = pd.concat([x_train, x_test, final])[cat_features]
-    for col in all:
-        cats.append(all[col].unique())
 
-    enc = OneHotEncoder(categories=cats, sparse=False).fit(all)
+    enc = OneHotEncoder(sparse=False).fit(all)
     feature_names = enc.get_feature_names_out(cat_features)
 
     train_encoded = enc.transform(x_train[cat_features])
@@ -195,13 +192,24 @@ def random_forest(x_train, y_train, x_test, y_test, final, prefix=''):
 def ada_boost(x_train, y_train, x_test, y_test, final, prefix=''):
     print(f'AdaBoost: ' + prefix)
 
+    print(f'  Default parameters, 50 estimators, LR: 1')
     clf = ensemble.AdaBoostClassifier()
     clf.fit(x_train, y_train)
-    print(f'  Training Accuracy: {clf.score(x_train, y_train)}')
-    print(f'  Test Accuracy: {clf.score(x_test, y_test)}')
+    print(f'    Training Accuracy: {clf.score(x_train, y_train)}')
+    print(f'    Test Accuracy: {clf.score(x_test, y_test)}')
     final['Prediction'] = clf.predict(final.drop(['ID', 'Prediction'],
                                       axis=1))
-    name = output_location + prefix + 'adaboost.csv'
+    name = output_location + prefix + 'adaboostdefault.csv'
+    final[['ID', 'Prediction']].to_csv(name, index=False)
+
+    print(f'  500 estimators, LR: .01')
+    clf = ensemble.AdaBoostClassifier(n_estimators=500, learning_rate=0.01)
+    clf.fit(x_train, y_train)
+    print(f'    Training Accuracy: {clf.score(x_train, y_train)}')
+    print(f'    Test Accuracy: {clf.score(x_test, y_test)}')
+    final['Prediction'] = clf.predict(final.drop(['ID', 'Prediction'],
+                                      axis=1))
+    name = output_location + prefix + 'adaboost500.csv'
     final[['ID', 'Prediction']].to_csv(name, index=False)
 
 
@@ -214,19 +222,28 @@ def bagged(x_train, y_train, x_test, y_test, final, prefix=''):
     print(f'  Test Accuracy: {clf.score(x_test, y_test)}')
     final['Prediction'] = clf.predict(final.drop(['ID', 'Prediction'],
                                       axis=1))
-    name = output_location + prefix + 'bagged.csv'
+    name = output_location + prefix + 'baggeddefault.csv'
+    final[['ID', 'Prediction']].to_csv(name, index=False)
+
+    clf = ensemble.BaggingClassifier(n_estimators=500, max_features=.5)
+    clf.fit(x_train, y_train)
+    print(f'  Training Accuracy: {clf.score(x_train, y_train)}')
+    print(f'  Test Accuracy: {clf.score(x_test, y_test)}')
+    final['Prediction'] = clf.predict(final.drop(['ID', 'Prediction'],
+                                      axis=1))
+    name = output_location + prefix + 'bagged8feat.csv'
     final[['ID', 'Prediction']].to_csv(name, index=False)
 
 
 cleaned = clean_data(train_raw, final_raw)
-decision_tree(*ordinal_encoding(*cleaned), prefix='ordinal_')
+# decision_tree(*ordinal_encoding(*cleaned), prefix='ordinal_')
 
-random_forest(*ordinal_encoding(*cleaned), prefix="ordinal_")
+# random_forest(*ordinal_encoding(*cleaned), prefix="ordinal_")
 
-random_forest(*OHE(*cleaned), prefix="OHE_")
+# random_forest(*OHE(*cleaned), prefix="OHE_")
 
-ada_boost(*OHE(*cleaned), prefix="OHE_")
-ada_boost(*ordinal_encoding(*cleaned), prefix="ordinal_")
+# ada_boost(*OHE(*cleaned), prefix="OHE_")
+# ada_boost(*ordinal_encoding(*cleaned), prefix="ordinal_")
 
 bagged(*OHE(*cleaned), prefix="OHE_")
 bagged(*ordinal_encoding(*cleaned), prefix="ordinal_")

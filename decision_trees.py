@@ -67,7 +67,7 @@ def ordinal_encoding(x_train, y_train, x_test, y_test, final):
 
     all = pd.concat([x_train, x_test, final])[cat_features]
     # Sklearn ordinal encoding
-    enc = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=41)
+    enc = OrdinalEncoder(handle_unknown='use_encoded_value', unknown_value=404)
     enc.fit(all)
     train_cat = pd.DataFrame(enc.transform(train_cat), columns=cat_features)
     test_cat = pd.DataFrame(enc.transform(test_cat), columns=cat_features)
@@ -236,14 +236,14 @@ def bagged(x_train, y_train, x_test, y_test, final, prefix=''):
 
 
 cleaned = clean_data(train_raw, final_raw)
-# decision_tree(*ordinal_encoding(*cleaned), prefix='ordinal_')
+decision_tree(*ordinal_encoding(*cleaned), prefix='ordinal_')
 
-# random_forest(*ordinal_encoding(*cleaned), prefix="ordinal_")
+random_forest(*ordinal_encoding(*cleaned), prefix="ordinal_")
 
-# random_forest(*OHE(*cleaned), prefix="OHE_")
+random_forest(*OHE(*cleaned), prefix="OHE_")
 
-# ada_boost(*OHE(*cleaned), prefix="OHE_")
-# ada_boost(*ordinal_encoding(*cleaned), prefix="ordinal_")
+ada_boost(*OHE(*cleaned), prefix="OHE_")
+ada_boost(*ordinal_encoding(*cleaned), prefix="ordinal_")
 
 bagged(*OHE(*cleaned), prefix="OHE_")
 bagged(*ordinal_encoding(*cleaned), prefix="ordinal_")
